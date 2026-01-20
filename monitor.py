@@ -1,6 +1,7 @@
 import os
 import subprocess
 import glob
+from tkinter import font
 import webbrowser
 import re
 import ssl
@@ -10,7 +11,11 @@ import json
 from datetime import datetime
 
 # ================= CONFIGURACIÓN =================
-OUTPUT_FILE = "Estado_GMU.html"
+OUTPUT_FILE_PATH  = "C:\\inetpub\\wwwroot"
+OUTPUT_FILE_FILE = "Estado_GMU.html"
+OUTPUT_FILE = os.path.join(OUTPUT_FILE_PATH, OUTPUT_FILE_FILE)
+PATH_SCRIPT = os.path.dirname(os.path.abspath(__file__))
+#OUTPUT_FILE = "C:\\0-Escaner\\Estado_GMU.html"
 RUTA_JSON = os.path.join(os.path.dirname(__file__), "ficheros_json")
 ESTADO_EMAIL_FILE = os.path.join(RUTA_JSON, "estado_hbs3.json")
 VEEAM_JSON_FILE = os.path.join(RUTA_JSON, "veeam_status.json")
@@ -229,7 +234,7 @@ html_final = f"""
     <title>Monitorización Sistemas GMU</title>
     <style>
         body {{ font-family: 'Segoe UI', Tahoma, sans-serif; background: #f8fafc; color: #334155; margin: 0; padding: 20px; }}
-        .container {{ width: 80%; margin: 0 auto; }}
+        .container {{ width: 90%; margin: 0 auto; }}
         h1 {{ font-size: 24px; margin-bottom: 5px; }}
         .timestamp {{ font-size: 13px; color: #64748b; margin-bottom: 25px; display: block; }}
         
@@ -255,6 +260,42 @@ html_final = f"""
         .badge-red {{ background: #fee2e2; color: #991b1b; }}
         .badge-orange {{ background: #ffedd5; color: #9a3412; }}
         h4 {{ margin-bottom: 8px; font-size: 14px; }}
+
+        .wrapper {{
+            width: 300.0px;
+            height: 200.0px;
+            overflow: hidden;
+            position: relative;
+            border: 1px solid #ccc;
+        }}
+
+        iframe {{
+            width: 1200px;
+            height: 800px;
+            border: none;
+            transform: scale(0.25);
+            transform-origin: 0 0;
+            }}
+
+        .servers_internos {{
+            border: none;
+        }}
+
+        .titulo, .tituloIP {{
+            font-weight: bold;
+            text-align: center;
+            margin: 0;
+        }}
+        .titulo {{
+            font-size: 17px;
+        }}
+
+        .tituloIP {{
+            font-size: 12px;
+            margin-bottom: 12px;
+        }}
+
+
     </style>
 </head>
 <body>
@@ -264,6 +305,50 @@ html_final = f"""
 
         <h3>🌐 Estado de Servidores</h3>
         <div class="grid-servers">{html_srv}</div>
+
+        <h3>🌐 Servidores web internos</h3>
+        <table class="grid-servers servers_internos">
+            <tr>
+                <td>
+                <p class="titulo ">Intranet</p>
+                <p class="tituloIP ">192.168.20.208</p>
+                    <div class="wrapper">
+                        <iframe src="http://192.168.20.208"></iframe>
+                    </div>
+                </td>                                           
+            <td>
+                <p class="titulo ">Portal Empleados</p>
+                 <p class="tituloIP ">192.168.20.210</p>
+                <div class="wrapper">
+                    <iframe src="http://192.168.20.210/empleados/web/index.php"></iframe>
+                </div>
+            </td>
+           <td>
+                <p class="titulo ">Qnap</p>
+                 <p class="tituloIP ">192.168.20.205</p>
+                <div class="wrapper">
+                    <iframe src="https://192.168.20.205/cgi-bin/"></iframe>
+                </div>
+            </td>
+            <td>
+                <p class="titulo ">Synology</p>
+                 <p class="tituloIP ">192.168.20.206</p>
+                <div class="wrapper">
+                    <iframe src="http://192.168.20.206"></iframe>
+                </div>
+            </td>
+            <td>
+                <p class="titulo ">Synology Ayto</p>
+                 <p class="tituloIP ">192.168.20.206</p>
+                <div class="wrapper">
+                    <iframe src="http://192.168.20.206"></iframe>
+                </div>
+            </td>
+
+        
+            </tr>
+        </table>
+
 
         <div class="flex-row">
             <div class="flex-col">
@@ -297,5 +382,7 @@ html_final = f"""
 """
 
 with open(OUTPUT_FILE, "w", encoding="utf-8") as f: f.write(html_final)
-webbrowser.open("file://" + os.path.realpath(OUTPUT_FILE))
+#webbrowser.open("file://" + os.path.realpath(OUTPUT_FILE))
+webbrowser.open("http://192.168.20.5/" + OUTPUT_FILE_FILE)
+
 print("✅ Informe generado correctamente al 80% de ancho.")

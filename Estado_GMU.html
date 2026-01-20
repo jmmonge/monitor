@@ -32,41 +32,113 @@
         .badge-red { background: #fee2e2; color: #991b1b; }
         .badge-orange { background: #ffedd5; color: #9a3412; }
         h4 { margin-bottom: 8px; font-size: 14px; }
+
+        .wrapper {
+            width: 300.0px;
+            height: 200.0px;
+            overflow: hidden;
+            position: relative;
+            border: 1px solid #ccc;
+        }
+
+        iframe {
+            width: 1200px;
+            height: 800px;
+            border: none;
+            transform: scale(0.25);
+            transform-origin: 0 0;
+            }
+
+        .servers_internos {
+            border: none;
+        }
+
+        .titulo, .tituloIP {
+            font-weight: bold;
+            text-align: center;
+            margin: 0;
+        }
+        .titulo {
+            font-size: 17px;
+        }
+
+        .tituloIP {
+            font-size: 12px;
+            margin-bottom: 12px;
+        }
+
+
     </style>
 </head>
 <body>
     <div class="container">
         <h1>🛡️ Monitorización Sistemas GMU</h1>
-        <span class="timestamp">Generado: 15/01/2026 08:11:25</span>
+        <span class="timestamp">Generado: 20/01/2026 12:53:42</span>
 
         <h3>🌐 Estado de Servidores</h3>
         <div class="grid-servers"><div class="card"><div class="status-indicator" style="background:#10b981"></div><div class="card-body"><strong>ServerNuevo</strong><br><small>192.168.20.254</small><br><span style="color:#10b981; font-weight:bold; font-size:13px;">ONLINE</span></div></div><div class="card"><div class="status-indicator" style="background:#10b981"></div><div class="card-body"><strong>GMU00</strong><br><small>192.168.20.200</small><br><span style="color:#10b981; font-weight:bold; font-size:13px;">ONLINE</span></div></div><div class="card"><div class="status-indicator" style="background:#10b981"></div><div class="card-body"><strong>Mi Ubuntu</strong><br><small>192.168.20.208</small><br><span style="color:#10b981; font-weight:bold; font-size:13px;">ONLINE</span></div></div><div class="card"><div class="status-indicator" style="background:#10b981"></div><div class="card-body"><strong>Portal Emp.</strong><br><small>192.168.20.210</small><br><span style="color:#10b981; font-weight:bold; font-size:13px;">ONLINE</span></div></div><div class="card"><div class="status-indicator" style="background:#10b981"></div><div class="card-body"><strong>GMU01</strong><br><small>192.168.20.201</small><br><span style="color:#10b981; font-weight:bold; font-size:13px;">ONLINE</span></div></div><div class="card"><div class="status-indicator" style="background:#10b981"></div><div class="card-body"><strong>NAS</strong><br><small>192.168.20.206</small><br><span style="color:#10b981; font-weight:bold; font-size:13px;">ONLINE</span></div></div><div class="card"><div class="status-indicator" style="background:#ef4444"></div><div class="card-body"><strong>GMU03</strong><br><small>192.168.20.202</small><br><span style="color:#ef4444; font-weight:bold; font-size:13px;">OFFLINE</span></div></div><div class="card"><div class="status-indicator" style="background:#10b981"></div><div class="card-body"><strong>Monitor Descargas</strong><br><small>NUXIT</small><br><span style="color:#10b981; font-weight:bold; font-size:13px;">ON</span></div></div></div>
 
+        <h3>🌐 Servidores web internos</h3>
+        <table class="grid-servers servers_internos">
+            <tr>
+                <td>
+                <p class="titulo ">Intranet</p>
+                <p class="tituloIP ">192.168.20.208</p>
+                    <div class="wrapper">
+                        <iframe src="http://192.168.20.208"></iframe>
+                    </div>
+                </td>                                           
+            <td>
+                <p class="titulo ">Portal Empleados</p>
+                 <p class="tituloIP ">192.168.20.210</p>
+                <div class="wrapper">
+                    <iframe src="http://192.168.20.210/empleados/web/index.php"></iframe>
+                </div>
+            </td>
+            <td>
+                <p class="titulo ">Synology</p>
+                 <p class="tituloIP ">192.168.20.206</p>
+                <div class="wrapper">
+                    <iframe src="http://192.168.20.206"></iframe>
+                </div>
+            </td>
+            <td>
+                <p class="titulo ">Qnap</p>
+                 <p class="tituloIP ">192.168.20.205</p>
+                <div class="wrapper">
+                    <iframe src="https://192.168.20.205/cgi-bin/"></iframe>
+                </div>
+            </td>
+        
+            </tr>
+        </table>
+
+
         <div class="flex-row">
             <div class="flex-col">
                 <h3>☁️ Copias Qnap a Synology (HBS3)</h3>
-                <table><thead><tr><th>Tarea</th><th>Estado</th><th>Último correo</th></tr></thead><tbody><tr><td>Sincronizar "De Ubuntu a Synology"</td><td><span class="badge badge-green">OK</span></td><td>14/01/2026 21:00</td></tr><tr><td>Sincronizar "Raid a Synology"</td><td><span class="badge badge-green">OK</span></td><td>14/01/2026 20:35</td></tr><tr><td>Sincronizar "Sincronizar ficheros Urbe"</td><td><span class="badge badge-green">OK</span></td><td>14/01/2026 20:02</td></tr></tbody></table>
+                <table><thead><tr><th>Tarea</th><th>Estado</th><th>Último correo</th></tr></thead><tbody><tr><td>Sincronizar "De Ubuntu a Synology"</td><td><span class="badge badge-green">OK</span></td><td>19/01/2026 21:00</td></tr><tr><td>Sincronizar "Raid a Synology"</td><td><span class="badge badge-green">OK</span></td><td>19/01/2026 20:33</td></tr><tr><td>Sincronizar "Sincronizar ficheros Urbe"</td><td><span class="badge badge-green">OK</span></td><td>19/01/2026 20:02</td></tr></tbody></table>
                 
                 <h3>💾 Backups Veeam (ServerNuevo)</h3>
-                <table><thead><tr><th>Trabajo</th><th>Tipo</th><th>Resultado</th><th>Finalizado</th></tr></thead><tbody><tr><td>Backup PortalEmpleado</td><td>Hyper-V</td><td><span class='badge badge-green'>Success</span></td><td>15/01/2026 02:01</td></tr><tr><td>Backup DCyLinux</td><td>Hyper-V</td><td><span class='badge badge-green'>Success</span></td><td>15/01/2026 01:03</td></tr><tr><td>Backup localhost</td><td>Agent</td><td><span class='badge badge-green'>Success</span></td><td>15/01/2026 05:13</td></tr></tbody></table>
+                <table><thead><tr><th>Trabajo</th><th>Tipo</th><th>Resultado</th><th>Finalizado</th></tr></thead><tbody><tr><td>Backup PortalEmpleado</td><td>Hyper-V</td><td><span class='badge badge-green'>Success</span></td><td>20/01/2026 02:01</td></tr><tr><td>Backup DCyLinux</td><td>Hyper-V</td><td><span class='badge badge-green'>Success</span></td><td>20/01/2026 01:02</td></tr><tr><td>Backup localhost</td><td>Agent</td><td><span class='badge badge-green'>Success</span></td><td>20/01/2026 05:13</td></tr></tbody></table>
             </div>
             <div class="flex-col">
                 <h3>📂 Backups en Synology (Locales)</h3>
                 <table><thead><tr><th>Recurso</th><th>Estado</th><th>Última modif.</th><th>Tamaño</th></tr></thead>
-                <tbody><tr><td>Archivo</td><td><span class="badge badge-green">OK</span></td><td>15/01/2026 00:23</td><td>212.90 KB</td></tr><tr><td>Urbe</td><td><span class="badge badge-green">OK</span></td><td>15/01/2026 00:23</td><td>47,683.35 KB</td></tr><tr><td>Decretos</td><td><span class="badge badge-green">OK</span></td><td>15/01/2026 00:23</td><td>5,596.60 KB</td></tr><tr><td>Vivienda</td><td><span class="badge badge-green">OK</span></td><td>15/01/2026 00:23</td><td>6,049.45 KB</td></tr><tr><td>Secretaria</td><td><span class="badge badge-green">OK</span></td><td>15/01/2026 00:23</td><td>1,002.52 KB</td></tr><tr><td>Inventario</td><td><span class="badge badge-green">OK</span></td><td>15/01/2026 00:23</td><td>38.90 KB</td></tr><tr><td>RD</td><td><span class="badge badge-green">OK</span></td><td>15/01/2026 00:23</td><td>510.64 KB</td></tr><tr><td>Portal Emp.</td><td><span class="badge badge-green">OK</span></td><td>15/01/2026 00:00</td><td>195.22 KB</td></tr></tbody></table>
+                <tbody><tr><td>Archivo</td><td><span class="badge badge-green">OK</span></td><td>20/01/2026 00:23</td><td>212.90 KB</td></tr><tr><td>Urbe</td><td><span class="badge badge-green">OK</span></td><td>20/01/2026 00:23</td><td>47,683.35 KB</td></tr><tr><td>Decretos</td><td><span class="badge badge-green">OK</span></td><td>20/01/2026 00:23</td><td>5,596.60 KB</td></tr><tr><td>Vivienda</td><td><span class="badge badge-green">OK</span></td><td>20/01/2026 00:23</td><td>6,049.45 KB</td></tr><tr><td>Secretaria</td><td><span class="badge badge-green">OK</span></td><td>20/01/2026 00:23</td><td>1,002.69 KB</td></tr><tr><td>Inventario</td><td><span class="badge badge-green">OK</span></td><td>20/01/2026 00:23</td><td>39.01 KB</td></tr><tr><td>RD</td><td><span class="badge badge-green">OK</span></td><td>20/01/2026 00:23</td><td>510.64 KB</td></tr><tr><td>Portal Emp.</td><td><span class="badge badge-green">OK</span></td><td>20/01/2026 00:00</td><td>195.62 KB</td></tr></tbody></table>
             </div>
         </div>
 
         <h3>📡 NUXIT</h3>
         <div class="flex-row">
-            <div class="flex-col"><h4>Logs lecturas archivos compartidos</h4><div class="console">14-01-2026 09:29:45 Nodo 804 actualizado con fecha 2026-01-14T09:29:43+01:00, IP 87.58.88.164 y usuario comisionpatrimonio.dtca.ctcd@juntadeandalucia.es<br>14-01-2026 09:30:31 Nodo 805 actualizado con fecha 2026-01-14T09:30:30+01:00, IP 87.58.88.164 y usuario comisionpatrimonio.dtca.ctcd@juntadeandalucia.es<br>14-01-2026 11:19:48 Nodo 806 actualizado con fecha 2026-01-14T11:19:46+01:00, IP 87.58.88.164 y usuario comisionpatrimonio.dtca.ctcd@juntadeandalucia.es<br>14-01-2026 11:20:12 Nodo 807 actualizado con fecha 2026-01-14T11:20:10+01:00, IP 87.58.88.164 y usuario comisionpatrimonio.dtca.ctcd@juntadeandalucia.es<br>14-01-2026 11:20:34 Nodo 808 actualizado con fecha 2026-01-14T11:20:33+01:00, IP 87.58.88.164 y usuario comisionpatrimonio.dtca.ctcd@juntadeandalucia.es<br>14-01-2026 11:20:54 Nodo 809 actualizado con fecha 2026-01-14T11:20:53+01:00, IP 87.58.88.164 y usuario comisionpatrimonio.dtca.ctcd@juntadeandalucia.es</div></div>
+            <div class="flex-col"><h4>Logs lecturas archivos compartidos</h4><div class="console">19-01-2026 09:26:24 Nodo 787 actualizado con fecha 2026-01-19T09:26:23+01:00, IP 87.58.88.210 y usuario informacion.dtcadiz.ctcd@juntadeandalucia.es<br>19-01-2026 09:32:35 Nodo 796 actualizado con fecha 2026-01-19T09:32:33+01:00, IP 87.58.88.210 y usuario informacion.dtcadiz.ctcd@juntadeandalucia.es<br>19-01-2026 09:35:18 Nodo 797 actualizado con fecha 2026-01-19T09:35:16+01:00, IP 87.58.88.210 y usuario informacion.dtcadiz.ctcd@juntadeandalucia.es<br>19-01-2026 09:35:49 Nodo 798 actualizado con fecha 2026-01-19T09:35:47+01:00, IP 87.58.88.210 y usuario informacion.dtcadiz.ctcd@juntadeandalucia.es<br>19-01-2026 09:38:05 Nodo 799 actualizado con fecha 2026-01-19T09:38:03+01:00, IP 87.58.88.210 y usuario informacion.dtcadiz.ctcd@juntadeandalucia.es<br>20-01-2026 12:06:11 Nodo 816 actualizado con fecha 2026-01-20T12:06:10+01:00, IP 87.58.86.180 y usuario ups.agsncad@juntadeandalucia.es</div></div>
             <div class="flex-col"><h4>Bloqueos IP transparencia</h4><div class="console" style="color:#93c5fd"># https://httpd.apache.org/docs/current/mod/mod_headers.html.<br>  Header onsuccess unset X-Content-Type-Options<br>  Header always set X-Content-Type-Options nosniff<br>  # Disable Proxy header, since it's an attack vector.<br>  RequestHeader unset Proxy<br></IfModule></div></div>
         </div>
 
         <h3>🐧 Servidores Ubuntu</h3>
         <div class="flex-row">
-            <div class="flex-col"><h4>Mi Ubuntu .208 <span class="badge badge-green">Actualizado</span></h4><div class="console">system boot  2026-01-15 07:00<br>---</div></div>
-            <div class="flex-col"><h4>Portal Emp .210 <span class="badge badge-green">Actualizado</span></h4><div class="console">system boot  2026-01-15 07:00<br>---</div></div>
+            <div class="flex-col"><h4>Mi Ubuntu .208 <span class="badge badge-green">Actualizado</span></h4><div class="console">system boot  2026-01-20 07:00<br>---</div></div>
+            <div class="flex-col"><h4>Portal Emp .210 <span class="badge badge-green">Actualizado</span></h4><div class="console">system boot  2026-01-20 07:00<br>---</div></div>
         </div>
     </div>
 </body>
