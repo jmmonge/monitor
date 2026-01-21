@@ -287,8 +287,14 @@ html_final = f"""
             margin: 0;
         }}
         .titulo {{
+            text-decoration: none;
             font-size: 17px;
+            color:black;
         }}
+
+        .titulo:hover {{
+                color: #378aed;
+            }}
 
         .tituloIP {{
             font-size: 12px;
@@ -310,35 +316,35 @@ html_final = f"""
         <table class="grid-servers servers_internos">
             <tr>
                 <td>
-                <p class="titulo ">Intranet</p>
+                <a class="titulo " href="http://192.168.20.208" target="_blank">Intranet</a>
                 <p class="tituloIP ">192.168.20.208</p>
                     <div class="wrapper">
                         <iframe src="http://192.168.20.208"></iframe>
                     </div>
                 </td>                                           
             <td>
-                <p class="titulo ">Portal Empleados</p>
+                <a class="titulo " href="http://192.168.20.210/empleados/web/index.php" target="_blank">Portal Empleados</a>
                  <p class="tituloIP ">192.168.20.210</p>
                 <div class="wrapper">
                     <iframe src="http://192.168.20.210/empleados/web/index.php"></iframe>
                 </div>
             </td>
            <td>
-                <p class="titulo ">Qnap</p>
+                <a class="titulo " href="https://192.168.20.205/cgi-bin/" target="_blank">Qnap</a>
                  <p class="tituloIP ">192.168.20.205</p>
                 <div class="wrapper">
                     <iframe src="https://192.168.20.205/cgi-bin/"></iframe>
                 </div>
             </td>
             <td>
-                <p class="titulo ">Synology</p>
+                <a class="titulo " href="http://192.168.20.206" target="_blank">Synology</a>
                  <p class="tituloIP ">192.168.20.206</p>
                 <div class="wrapper">
                     <iframe src="http://192.168.20.206"></iframe>
                 </div>
             </td>
             <td>
-                <p class="titulo ">Synology Ayto</p>
+                <a class="titulo " href="http://192.168.20.206" target="_blank">Synology Ayto</a>
                  <p class="tituloIP ">192.168.20.206</p>
                 <div class="wrapper">
                     <iframe src="http://192.168.20.206"></iframe>
@@ -385,4 +391,4 @@ with open(OUTPUT_FILE, "w", encoding="utf-8") as f: f.write(html_final)
 #webbrowser.open("file://" + os.path.realpath(OUTPUT_FILE))
 webbrowser.open("http://192.168.20.5/" + OUTPUT_FILE_FILE)
 
-print("✅ Informe generado correctamente al 80% de ancho.")
+print("✅ Informe generado correctamente.")
