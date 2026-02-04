@@ -18,6 +18,7 @@ PATH_SCRIPT = os.path.dirname(os.path.abspath(__file__))
 #OUTPUT_FILE = "C:\\0-Escaner\\Estado_GMU.html"
 RUTA_JSON = os.path.join(os.path.dirname(__file__), "ficheros_json")
 ESTADO_EMAIL_FILE = os.path.join(RUTA_JSON, "estado_hbs3.json")
+ESTADO_EMAIL_FILE2 = os.path.join(RUTA_JSON, "estado_synology.json")
 VEEAM_JSON_FILE = os.path.join(RUTA_JSON, "veeam_status.json")
 
 # Configuración NUXIT
@@ -29,6 +30,7 @@ NUXIT_USER = "p5245"
 IMAP_SERVER = "91.191.159.139"
 IMAP_PORT = 993
 IMAP_USER = "qnap@gmusanlucar.es"
+IMAP_USER2 = "synology.ayto@gmusanlucar.es"
 IMAP_PASS = "1correogmu"
 
 # Tiempos de espera (Segundos)
@@ -64,6 +66,12 @@ tareas_hbs3 = [
     'Sincronizar "Raid a Synology"',
     'Sincronizar "Sincronizar ficheros Urbe"'
 ]
+
+tareas_synology = [
+    'Respaldo a Nas Ayto',
+    'Backup Raid de Qnap'
+]
+
 
 # ================= UTILIDADES =================
 
@@ -162,8 +170,45 @@ try:
     mail.expunge()
     mail.logout()
 except: pass
-
 with open(ESTADO_EMAIL_FILE, "w", encoding="utf-8") as f: json.dump(estado_qnap, f, indent=4)
+
+# 1. Synology.Ayto IMAP
+if os.path.exists(ESTADO_EMAIL_FILE2):
+    with open(ESTADO_EMAIL_FILE2, "r", encoding="utf-8-sig") as f:
+        try: estado_synology = json.load(f)
+        except: estado_synology = {}
+else: estado_synology = {}
+try:
+    ssl_ctx = ssl.create_default_context()
+    ssl_ctx.check_hostname = False
+    ssl_ctx.verify_mode = ssl.CERT_NONE
+    mail = imaplib.IMAP4_SSL(IMAP_SERVER, IMAP_PORT, ssl_context=ssl_ctx)
+    mail.login(IMAP_USER2, IMAP_PASS)
+    mail.select("INBOX")
+    _, data = mail.search(None, 'ALL')
+    for num in data[0].split():
+        _, msg_data = mail.fetch(num, '(RFC822)')
+        msg = email.message_from_bytes(msg_data[0][1])
+        f_mail = email.utils.parsedate_to_datetime(msg["Date"])
+        cuerpo = ""
+        if msg.is_multipart():
+            for part in msg.walk():
+                if part.get_content_type() in ("text/plain", "text/html"):
+                    cuerpo += part.get_payload(decode=True).decode(errors="replace")
+        else: cuerpo = msg.get_payload(decode=True).decode(errors="replace")
+        
+        cuerpo = cuerpo.replace("\n", " ").replace("\r", " ")
+        for t in tareas_synology:
+            if t in cuerpo and " se ha completado" in cuerpo:
+                estado_synology[t] = {"fecha": f_mail.strftime("%Y-%m-%d %H:%M:%S")}
+            elif t in cuerpo and "finalizada correctamente" in cuerpo:
+                estado_synology[t] = {"fecha": f_mail.strftime("%Y-%m-%d %H:%M:%S")}   
+        mail.store(num, '+FLAGS', '\\Deleted')
+    mail.expunge()
+    mail.logout()
+except: pass
+
+with open(ESTADO_EMAIL_FILE2, "w", encoding="utf-8") as f: json.dump(estado_synology, f, indent=4)
 
 # 2. Veeam
 html_veeam = ""
@@ -226,6 +271,18 @@ for t in tareas_hbs3:
         c = "badge-green" if (now - f_dt).days <= 1 else "badge-orange"
         badge, f_str = (f'<span class="badge {c}">OK</span>', f_dt.strftime("%d/%m/%Y %H:%M"))
     html_qnap_rows += f"<tr><td>{t}</td><td>{badge}</td><td>{f_str}</td></tr>"
+
+html_synology_rows = ""
+for t in tareas_synology:
+    inf = estado_synology.get(t)
+    badge, f_str = ('<span class="badge badge-red">SIN DATOS</span>', "-")
+    if inf:
+        f_dt = datetime.strptime(inf["fecha"], "%Y-%m-%d %H:%M:%S")
+        c = "badge-green" if (now - f_dt).days <= 1 else "badge-orange"
+        badge, f_str = (f'<span class="badge {c}">OK</span>', f_dt.strftime("%d/%m/%Y %H:%M"))
+    html_synology_rows += f"<tr><td>{t}</td><td>{badge}</td><td>{f_str}</td></tr>"
+
+
 
 html_final = f"""
 <!DOCTYPE html>
@@ -302,7 +359,10 @@ html_final = f"""
             margin-bottom: 12px;
         }}
 
-
+        #synology_ayto {{
+            padding-bottom: 32px;  
+        }}
+        
     </style>
 </head>
 <body>
@@ -361,17 +421,25 @@ html_final = f"""
             <div class="flex-col">
                 <h3>☁️ Copias Qnap a Synology (HBS3)</h3>
                 <table><thead><tr><th>Tarea</th><th>Estado</th><th>Último correo</th></tr></thead><tbody>{html_qnap_rows}</tbody></table>
-                
+
                 <h3>💾 Backups Veeam (ServerNuevo)</h3>
                 <table><thead><tr><th>Trabajo</th><th>Tipo</th><th>Resultado</th><th>Finalizado</th></tr></thead><tbody>{html_veeam}</tbody></table>
             </div>
+        
             <div class="flex-col">
+            
+            <div id="synology_ayto">
+                <h3>☁️ Copias en Synology Ayto</h3>
+                <table><thead><tr><th>Tarea</th><th>Estado</th><th>Último correo</th></tr></thead><tbody>{html_synology_rows}</tbody></table>
+            </div>
+
                 <h3>📂 Backups en Synology (Locales)</h3>
                 <table><thead><tr><th>Recurso</th><th>Estado</th><th>Última modif.</th><th>Tamaño</th></tr></thead>
                 <tbody>{''.join(get_backup_info(n, r) for n, r in rutas_backups)}</tbody></table>
             </div>
         </div>
 
+        
         <h3>📡 NUXIT</h3>
         <div class="flex-row">
             <div class="flex-col"><h4>Logs lecturas archivos compartidos</h4><div class="console">{nuxit_logs}</div></div>
