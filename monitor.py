@@ -43,6 +43,7 @@ servidores = [
     ("Portal Emp.", "192.168.20.210"),
     ("GMU01", "192.168.20.201"),
     ("NAS", "192.168.20.206"),
+    ("NAS AYTO", "192.168.20.252"),
     ("GMU03", "192.168.20.202")
 ]
 
@@ -344,10 +345,10 @@ html_final = f"""
                 </div>
             </td>
             <td>
-                <a class="titulo " href="http://192.168.20.206" target="_blank">Synology Ayto</a>
-                 <p class="tituloIP ">192.168.20.206</p>
+                <a class="titulo " href="http://192.168.20.252" target="_blank">Synology Ayto</a>
+                 <p class="tituloIP ">192.168.20.252</p>
                 <div class="wrapper">
-                    <iframe src="http://192.168.20.206"></iframe>
+                    <iframe src="http://192.168.20.252"></iframe>
                 </div>
             </td>
 

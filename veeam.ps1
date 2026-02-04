@@ -1,13 +1,14 @@
+# Script generado el 04/02/2026 11:22:09
 Import-Module Veeam.Backup.PowerShell -DisableNameChecking -ErrorAction Stop
 
 # Conexión
 Disconnect-VBRServer -ErrorAction SilentlyContinue | Out-Null
 Connect-VBRServer -Server "192.168.20.254" -ErrorAction Stop
 
-# 1. Obtener todos los trabajos
-$vmJobs = Get-VBRJob -WarningAction SilentlyContinue | Where-Object { $_.JobType -ne "EpAgentBackup" }
+# 1. Obtener todos los trabajos (incluyendo Backup Copy)
+$allJobs = Get-VBRJob -WarningAction SilentlyContinue
 $agentJobs = Get-VBRComputerBackupJob
-$allJobs = @($vmJobs; $agentJobs)
+$allJobs = @($allJobs; $agentJobs)
 
 # --- OPTIMIZACIÓN CLAVE: Cargar sesiones una sola vez ---
 Write-Host "Cargando historial de sesiones (esto ahorrará mucho tiempo)..." -ForegroundColor Gray
@@ -17,14 +18,30 @@ $allAgentSessions = Get-VBRComputerBackupJobSession | Group-Object JobId -AsHash
 
 $resultados = foreach ($job in $allJobs) {
     
+    # Saltar trabajos de tipo EpAgentBackup
+    if ($job.JobType -eq "EpAgentBackup") { continue }
+    
     # Buscamos en el Hash Table en memoria (instantáneo)
     $session = $allSessions[$job.Id] | Sort-Object CreationTime -Descending | Select-Object -First 1
     
     if ($null -eq $session) {
         $session = $allAgentSessions[$job.Id] | Sort-Object CreationTime -Descending | Select-Object -First 1
     }
+    
+    # Si aún no hay sesión, intentar con Get-VBRSession (para Backup Copy)
+    if ($null -eq $session -and $job.JobType -in @("SimpleBackupCopyPolicy", "BackupCopy")) {
+        $session = Get-VBRSession -Job $job -WarningAction SilentlyContinue | 
+                   Sort-Object CreationTime -Descending | 
+                   Select-Object -First 1
+    }
 
-    $tipo = if ($job.JobType -eq "Backup") { "Hyper-V" } else { "Agent" }
+    # Determinar tipo de trabajo
+    $tipo = switch ($job.JobType) {
+        "Backup" { "Hyper-V" }
+        "SimpleBackupCopyPolicy" { "Copy" }
+        "BackupCopy" { "Copy" }
+        default { "Agent" }
+    }
 
     $resultadoTexto = "Sin datos"
     if ($null -ne $session) {
