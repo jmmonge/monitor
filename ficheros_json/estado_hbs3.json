@@ -1,11 +1,14 @@
 {
     "Sincronizar \"De Ubuntu a Synology\"": {
-        "fecha": "2026-02-03 21:00:49"
+        "fecha": "2026-02-06 20:16:14",
+        "estado": "OK"
     },
     "Sincronizar \"Raid a Synology\"": {
-        "fecha": "2026-02-03 20:33:52"
+        "fecha": "2026-02-05 20:36:06",
+        "estado": "OK"
     },
     "Sincronizar \"Sincronizar ficheros Urbe\"": {
-        "fecha": "2026-02-03 20:02:19"
+        "fecha": "2026-02-06 20:02:16",
+        "estado": "OK"
     }
 }

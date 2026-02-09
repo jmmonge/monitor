@@ -117,7 +117,7 @@ if os.path.exists(VEEAM_JSON_FILE):
     try:
         os.remove(VEEAM_JSON_FILE)
     except: pass
-    
+'''
 # ================= EJECUCIÓN PREVIA DE VEEAM =================
 print("--> 🌀 Ejecutando script de Veeam (PowerShell)...")
 try:
@@ -131,7 +131,7 @@ except subprocess.TimeoutExpired:
 # A partir de aquí continúa el resto de tu script...
 print(f"\n🚀 INICIANDO RECOLECCIÓN - {datetime.now().strftime('%H:%M:%S')}")
 
-
+'''
 # ================= RECOLECCIÓN =================
 now = datetime.now()
 print(f"🚀 Procesando GMU Dashboard - {now.strftime('%H:%M:%S')}")
@@ -169,7 +169,6 @@ try:
                     "fecha": f_mail.strftime("%Y-%m-%d %H:%M:%S"),
                     "estado": "OK"
                                   }
-
         mail.store(num, '+FLAGS', '\\Deleted')
     #mail.expunge()
     mail.logout()
@@ -217,7 +216,9 @@ try:
                 estado_synology[t] = {
                     "fecha": f_mail.strftime("%Y-%m-%d %H:%M:%S"),
                     "estado": "ERROR"
-                    }    
+                    }   
+                
+
      #   mail.store(num, '+FLAGS', '\\Deleted')
     #mail.expunge()
     mail.logout()
@@ -251,7 +252,7 @@ if os.path.exists(VEEAM_JSON_FILE):
                 html_veeam += f"<tr><td>{j.get('Trabajo')}</td><td>{j.get('Tipo')}</td><td><span class='badge {cls_res}'>{res}</span></td><td>{fecha_col}</td></tr>"
         except Exception as e: 
             html_veeam = f"<tr><td colspan='4'>Error: {e}</td></tr>"
-
+'''
 # 3. Pings e Indicadores
 html_srv = ""
 for n, ip in servidores:
@@ -286,7 +287,7 @@ monitor_activo = check_monitor_descargas()
 color_monitor = "#10b981" if monitor_activo else "#ef4444"
 estado_monitor = "ON" if monitor_activo else "OFF"
 
-
+'''
 
 # ================= CONSTRUCCIÓN HTML =================
 
@@ -317,7 +318,9 @@ for t in tareas_hbs3:
 
     html_qnap_rows += f"<tr><td>{t}</td><td>{badge}</td><td>{f_str}</td></tr>"
 
+
 html_synology_rows = ""
+
 for t in tareas_synology:
     inf = estado_synology.get(t)
     # Valores por defecto si no hay información
@@ -342,6 +345,7 @@ for t in tareas_synology:
         c_estado = "badge-green" if estado_valor == "OK" else "badge-red"
         
         badge = f'<span class="badge {c_estado}">{estado_valor}</span>'
+
     # 3. Construir la fila
     html_synology_rows += f"<tr><td>{t}</td><td>{badge}</td><td>{f_str}</td></tr>"
 
@@ -430,9 +434,9 @@ html_final = f"""
     <div class="container">
         <h1>🛡️ Monitorización Sistemas GMU</h1>
         <span class="timestamp">Generado: {now.strftime("%d/%m/%Y %H:%M:%S")}</span>
-
+<!--
         <h3>🌐 Estado de Servidores</h3>
-        <div class="grid-servers">{html_srv}</div>
+        <div class="grid-servers">{'''html_srv'''}</div>
 
         <h3>🌐 Servidores web internos</h3>
         <table class="grid-servers servers_internos">
@@ -476,7 +480,7 @@ html_final = f"""
         
             </tr>
         </table>
-
+-->
 
         <div class="flex-row">
             <div class="flex-col">
@@ -500,18 +504,19 @@ html_final = f"""
             </div>
         </div>
 
-        
+      <!--  
         <h3>📡 NUXIT</h3>
         <div class="flex-row">
-            <div class="flex-col"><h4>Logs lecturas archivos compartidos</h4><div class="console">{nuxit_logs}</div></div>
-            <div class="flex-col"><h4>Bloqueos IP transparencia</h4><div class="console" style="color:#93c5fd">{nuxit_ip}</div></div>
+            <div class="flex-col"><h4>Logs lecturas archivos compartidos</h4><div class="console">{'''nuxit_logs'''}</div></div>
+            <div class="flex-col"><h4>Bloqueos IP transparencia</h4><div class="console" style="color:#93c5fd">{'''nuxit_ip'''}</div></div>
         </div>
 
         <h3>🐧 Servidores Ubuntu</h3>
         <div class="flex-row">
-            <div class="flex-col"><h4>Mi Ubuntu .208 {b208}</h4><div class="console">{t208}</div></div>
-            <div class="flex-col"><h4>Portal Emp .210 {b210}</h4><div class="console">{t210}</div></div>
+            <div class="flex-col"><h4>Mi Ubuntu .208 {'''b208'''}</h4><div class="console">{'''t208'''}</div></div>
+            <div class="flex-col"><h4>Portal Emp .210 {'''b210'''}</h4><div class="console">{'''t210'''}</div></div>
         </div>
+    -->    
     </div>
 </body>
 </html>

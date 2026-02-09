@@ -1,8 +1,10 @@
 {
     "Respaldo a Nas Ayto": {
-        "fecha": "2026-02-04 12:09:17"
+        "fecha": "2026-02-09 03:25:20",
+        "estado": "OK"
     },
     "Backup Raid de Qnap": {
-        "fecha": "2026-02-04 13:24:18"
+        "fecha": "2026-02-09 11:02:33",
+        "estado": "ERROR"
     }
 }
