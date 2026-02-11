@@ -63,7 +63,7 @@ rutas_backups = [
 
 tareas_hbs3 = [
     'Sincronizar "De Ubuntu a Synology"',
-    'Sincronizar "Raid a Synology"',
+    'Sincronizar: "Raid a Synology"',
     'Sincronizar "Sincronizar ficheros Urbe"'
 ]
 
@@ -155,6 +155,7 @@ try:
         _, msg_data = mail.fetch(num, '(RFC822)')
         msg = email.message_from_bytes(msg_data[0][1])
         f_mail = email.utils.parsedate_to_datetime(msg["Date"])
+        f_mail_local = f_mail.astimezone()  # Convertir a hora local
         cuerpo = ""
         if msg.is_multipart():
             for part in msg.walk():
@@ -166,14 +167,20 @@ try:
         for t in tareas_hbs3:
             if t in cuerpo and "ha finalizado" in cuerpo:
                 estado_qnap[t] = {
-                    "fecha": f_mail.strftime("%Y-%m-%d %H:%M:%S"),
+                    "fecha": f_mail_local.strftime("%Y-%m-%d %H:%M:%S"),
                     "estado": "OK"
                                   }
-
-        mail.store(num, '+FLAGS', '\\Deleted')
+            elif t in cuerpo and "Finalizado trabajo de Sincronizar" in cuerpo:
+                estado_qnap[t] = {
+                    "fecha": f_mail_local.strftime("%Y-%m-%d %H:%M:%S"),
+                    "estado": "OK"
+                    } 
+        #mail.store(num, '+FLAGS', '\\Deleted')
     #mail.expunge()
     mail.logout()
-except: pass
+except Exception as e:
+    print(f"❌ Error: {e}")
+
 with open(ESTADO_EMAIL_FILE, "w", encoding="utf-8") as f: json.dump(estado_qnap, f, indent=4)
 
 # 1. Synology.Ayto IMAP
@@ -221,7 +228,8 @@ try:
      #   mail.store(num, '+FLAGS', '\\Deleted')
     #mail.expunge()
     mail.logout()
-except: pass
+except Exception as e:
+    print(f"❌ Error: {e}")
 
 with open(ESTADO_EMAIL_FILE2, "w", encoding="utf-8") as f: json.dump(estado_synology, f, indent=4)
 
