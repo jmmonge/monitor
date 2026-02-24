@@ -62,9 +62,9 @@ rutas_backups = [
 ]
 
 tareas_hbs3 = [
-    'Sincronizar "De Ubuntu a Synology"',
-    'Sincronizar: "Raid a Synology"',
-    'Sincronizar "Sincronizar ficheros Urbe"'
+    'de ubuntu a synology',
+    'raid a synology',
+    'ficheros urbe'
 ]
 
 tareas_synology = [
@@ -74,6 +74,32 @@ tareas_synology = [
 
 
 # ================= UTILIDADES =================
+def comprobar_log_dmark():
+    
+    # Construimos la ruta subiendo un nivel y entrando en la carpeta dmarc
+    log_path = os.path.join(PATH_SCRIPT, "..", "dmarc", "logs", "ejecuciones.log")
+    
+    # Normalizamos la ruta para que sea válida en cualquier SO (quita los '..')
+    log_path = os.path.normpath(log_path)
+
+    if not os.path.exists(log_path):
+        return f"Log no encontrado en: {log_path}"
+    
+    try:
+        with open(log_path, "r", encoding="utf-8") as f:
+            lineas = f.readlines()
+            if not lineas:
+                return "Log vacío"
+            
+            # Buscamos la última línea que no sea solo espacios en blanco
+            ultima_linea = next((linea.strip() for linea in reversed(lineas) if linea.strip()), None)
+            
+            return ultima_linea if ultima_linea else "El log solo contiene líneas en blanco"
+            
+    except Exception as e:
+        return f"Error al leer el archivo: {e}"
+
+
 
 def formatear_fecha_veeam(fecha_str):
     if not fecha_str or "Sin datos" in str(fecha_str): return "-"
@@ -164,16 +190,29 @@ try:
         else: cuerpo = msg.get_payload(decode=True).decode(errors="replace")
         
         cuerpo = cuerpo.replace("\n", " ").replace("\r", " ")
+        
+        # 1. Limpiamos el cuerpo: quitamos saltos de línea y colapsamos espacios múltiples en uno solo
+        cuerpo_frio = cuerpo.replace("\n", " ").replace("\r", " ")
+        cuerpo_normalizado = re.sub(r'\s+', ' ', cuerpo_frio).strip().lower()
+        
+        #print(f"Cuerpo del correo: {cuerpo_normalizado}")  # Imprime el cuerpo para depuración
+        
+        
         for t in tareas_hbs3:
-            if t in cuerpo and "ha finalizado" in cuerpo:
+            if t in cuerpo_normalizado and "ha finalizado" in cuerpo_normalizado:
                 estado_qnap[t] = {
                     "fecha": f_mail_local.strftime("%Y-%m-%d %H:%M:%S"),
                     "estado": "OK"
                                   }
-            elif t in cuerpo and "Finalizado trabajo de Sincronizar" in cuerpo:
+            elif t in cuerpo_normalizado and "finalizado trabajo de sincronizar" in cuerpo_normalizado:
                 estado_qnap[t] = {
                     "fecha": f_mail_local.strftime("%Y-%m-%d %H:%M:%S"),
                     "estado": "OK"
+                    } 
+            elif t in cuerpo_normalizado and "error" in cuerpo_normalizado:
+                estado_qnap[t] = {
+                    "fecha": f_mail_local.strftime("%Y-%m-%d %H:%M:%S"),
+                    "estado": "ERROR"
                     } 
         #mail.store(num, '+FLAGS', '\\Deleted')
     #mail.expunge()
@@ -209,22 +248,37 @@ try:
         else: cuerpo = msg.get_payload(decode=True).decode(errors="replace")
         
         cuerpo = cuerpo.replace("\n", " ").replace("\r", " ")
+
+# Limpieza más profunda para evitar fallos de coincidencia
+        cuerpo_limpio = " ".join(cuerpo.split())
+
         for t in tareas_synology:
-            if t in cuerpo and " se ha completado." in cuerpo:
-                estado_synology[t] = {
-                    "fecha": f_mail.strftime("%Y-%m-%d %H:%M:%S"),
-                    "estado": "OK"
-                                  }
-            elif t in cuerpo and "finalizada correctamente" in cuerpo:
-                estado_synology[t] = {
-                    "fecha": f_mail.strftime("%Y-%m-%d %H:%M:%S"),
-                    "estado": "OK"
-                    }   
-            elif t in cuerpo and "ERROR durante rsync" in cuerpo:
-                estado_synology[t] = {
-                    "fecha": f_mail.strftime("%Y-%m-%d %H:%M:%S"),
-                    "estado": "ERROR"
-                    }    
+            if t in cuerpo_limpio:
+                    # Extraemos la fecha del correo para comparar si es más reciente que la que ya tenemos
+                    fecha_actual_dt = f_mail
+                    fecha_str = f_mail.strftime("%Y-%m-%d %H:%M:%S")
+                    
+                    # 1. Definimos si el mensaje es de éxito
+                    es_exito = (" se ha completado." in cuerpo_limpio or 
+                                "finalizada correctamente" in cuerpo_limpio)
+                    
+                    nuevo_estado = "OK" if es_exito else "ERROR"
+
+                    # 2. Lógica de actualización: Solo actualizamos si la tarea no existe 
+                    # o si el correo que estamos leyendo es más reciente que el guardado.
+                    if t not in estado_synology:
+                        actualizar = True
+                    else:
+                        fecha_guardada = datetime.strptime(estado_synology[t]["fecha"], "%Y-%m-%d %H:%M:%S")
+                        actualizar = fecha_actual_dt.replace(tzinfo=None) > fecha_guardada
+
+                    if actualizar:
+                        estado_synology[t] = {
+                            "fecha": fecha_str,
+                            "estado": nuevo_estado
+                        }
+
+
      #   mail.store(num, '+FLAGS', '\\Deleted')
     #mail.expunge()
     mail.logout()
@@ -437,7 +491,10 @@ html_final = f"""
 <body>
     <div class="container">
         <h1>🛡️ Monitorización Sistemas GMU</h1>
-        <span class="timestamp">Generado: {now.strftime("%d/%m/%Y %H:%M:%S")}</span>
+        <span class="timestamp">
+            <strong>Generado:</strong> {now.strftime("%d/%m/%Y %H:%M:%S")}<br>
+            <strong>Ultima ejecución dmarc:</strong> {comprobar_log_dmark()}
+        </span>
 
         <h3>🌐 Estado de Servidores</h3>
         <div class="grid-servers">{html_srv}</div>

@@ -66,11 +66,8 @@ $incidencias = $resultados | Where-Object {
 }
 
 if ($incidencias) {
-    Write-Host "ATENCIÓN: Se han detectado problemas o falta de datos." -ForegroundColor Red
-    exit 1
-} else {
-    Write-Host "OK: Todos los backups se han ejecutado correctamente." -ForegroundColor Green
-    # Uso de Set-Content que es más rápido que Out-File para JSON
-    $resultados | ConvertTo-Json -Compress | Set-Content ".\ficheros_json\veeam_status.json" -Encoding UTF8
-    exit 0
+    Write-Host "ATENCIÓN: Se han detectado Errores" -ForegroundColor Red
 }
+# Uso de Set-Content que es más rápido que Out-File para JSON
+$resultados | ConvertTo-Json -Compress | Set-Content ".\ficheros_json\veeam_status.json" -Encoding UTF8
+exit 0
