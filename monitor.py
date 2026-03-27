@@ -45,7 +45,7 @@ servidores = [
     ("Portal Emp.", "192.168.20.210"),
     ("GMU01", "192.168.20.201"),
     ("NAS", "192.168.20.206"),
-    ("NAS AYTO", "192.168.20.252"),
+    ("NAS AYTO", "192.168.2.252"),
     ("GMU03", "192.168.20.202")
 ]
 
@@ -213,9 +213,10 @@ try:
                 estado_qnap[t] = {
                     "fecha": f_mail_local.strftime("%Y-%m-%d %H:%M:%S"),
                     "estado": "ERROR"
-                    } 
-        #mail.store(num, '+FLAGS', '\\Deleted')
-    #mail.expunge()
+                    }
+        mail.copy(num, '"INBOX.Trash"')  
+        mail.store(num, '+FLAGS', '\\Deleted')
+    mail.expunge()
     mail.logout()
 except Exception as e:
     print(f"❌ Error: {e}")
@@ -278,9 +279,9 @@ try:
                             "estado": nuevo_estado
                         }
 
-
-     #   mail.store(num, '+FLAGS', '\\Deleted')
-    #mail.expunge()
+        mail.copy(num, '"INBOX.Trash"') 
+        mail.store(num, '+FLAGS', '\\Deleted')
+    mail.expunge()
     mail.logout()
 except Exception as e:
     print(f"❌ Error: {e}")
@@ -531,10 +532,10 @@ html_final = f"""
                 </div>
             </td>
             <td>
-                <a class="titulo " href="http://192.168.20.252" target="_blank">Synology Ayto</a>
-                 <p class="tituloIP ">192.168.20.252</p>
+                <a class="titulo " href="http://192.168.2.252" target="_blank">Synology Ayto</a>
+                 <p class="tituloIP ">192.168.2.252</p>
                 <div class="wrapper">
-                    <iframe src="http://192.168.20.252"></iframe>
+                    <iframe src="http://192.168.2.252"></iframe>
                 </div>
             </td>
 
@@ -570,6 +571,19 @@ html_final = f"""
         <div class="flex-row">
             <div class="flex-col"><h4>Logs lecturas archivos compartidos</h4><div class="console">{nuxit_logs}</div></div>
             <div class="flex-col"><h4>Bloqueos IP transparencia</h4><div class="console" style="color:#93c5fd">{nuxit_ip}</div></div>
+            <div>
+                <table class="grid-servers servers_internos">
+                    <tr>
+                        <td>
+                        <a class="titulo " href="diagrama.html" target="_blank">Programación de  Backups</a>
+                        <p class="tituloIP ">localhost</p>
+                            <div class="wrapper">
+                                <iframe src="http://192.168.20.5/diagrama.html"></iframe>
+                            </div>
+                        </td> 
+                    </tr>
+                </table>
+            </div>
         </div>
 
         <h3>🐧 Servidores Ubuntu</h3>
@@ -577,7 +591,7 @@ html_final = f"""
             <div class="flex-col"><h4>Mi Ubuntu .208 {b208}</h4><div class="console">{t208}</div></div>
             <div class="flex-col"><h4>Portal Emp .210 {b210}</h4><div class="console">{t210}</div></div>
         </div>
-    </div>
+
 </body>
 </html>
 """

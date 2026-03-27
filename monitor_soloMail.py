@@ -169,8 +169,9 @@ try:
                     "fecha": f_mail.strftime("%Y-%m-%d %H:%M:%S"),
                     "estado": "OK"
                                   }
+        mail.copy(num, '"INBOX.Trash"')        
         mail.store(num, '+FLAGS', '\\Deleted')
-    #mail.expunge()
+    mail.expunge()
     mail.logout()
 except: pass
 with open(ESTADO_EMAIL_FILE, "w", encoding="utf-8") as f: json.dump(estado_qnap, f, indent=4)
