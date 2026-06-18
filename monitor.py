@@ -148,7 +148,8 @@ if os.path.exists(VEEAM_JSON_FILE):
 print("--> 🌀 Ejecutando script de Veeam (PowerShell)...")
 try:
     ps_path = os.path.join(os.path.dirname(__file__), "veeam.ps1")
-    subprocess.run(["powershell.exe", "-ExecutionPolicy", "Bypass", "-File", ps_path], 
+   # subprocess.run(["powershell.exe", "-ExecutionPolicy", "Bypass", "-File", ps_path], 
+    subprocess.run(["pwsh.exe", "-ExecutionPolicy", "Bypass", "-File", ps_path], 
                    timeout=60, check=False) # Timeout largo para PS
     print("    [OK] Script de Veeam finalizado.")
 except subprocess.TimeoutExpired:

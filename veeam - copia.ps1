@@ -1,7 +1,7 @@
-# Script modificado para generar el archivo de estado en castellano con estructura de diccionario
+# Script generado el 04/02/2026 11:22:09
 Import-Module Veeam.Backup.PowerShell -DisableNameChecking -ErrorAction Stop
 
-# ConexiÃ³n
+# Conexión
 Disconnect-VBRServer -ErrorAction SilentlyContinue | Out-Null
 Connect-VBRServer -Server "192.168.20.254" -ErrorAction Stop
 
@@ -10,30 +10,31 @@ $allJobs = Get-VBRJob -WarningAction SilentlyContinue
 $agentJobs = Get-VBRComputerBackupJob
 $allJobs = @($allJobs; $agentJobs)
 
-# --- OPTIMIZACIÃ“N CLAVE: Cargar sesiones una sola vez ---
-Write-Host "Cargando historial de sesiones (esto ahorrarÃ¡ mucho tiempo)..." -ForegroundColor Gray
+# --- OPTIMIZACIÓN CLAVE: Cargar sesiones una sola vez ---
+Write-Host "Cargando historial de sesiones (esto ahorrará mucho tiempo)..." -ForegroundColor Gray
 $allSessions = Get-VBRBackupSession | Group-Object JobId -AsHashTable
 $allAgentSessions = Get-VBRComputerBackupJobSession | Group-Object JobId -AsHashTable
-
 # -------------------------------------------------------
+
 $resultados = foreach ($job in $allJobs) {
     
     # Saltar trabajos de tipo EpAgentBackup
     if ($job.JobType -eq "EpAgentBackup") { continue }
     
-    # Buscamos en el Hash Table en memoria (instantÃ¡neo)
+    # Buscamos en el Hash Table en memoria (instantáneo)
     $session = $allSessions[$job.Id] | Sort-Object CreationTime -Descending | Select-Object -First 1
     
     if ($null -eq $session) {
         $session = $allAgentSessions[$job.Id] | Sort-Object CreationTime -Descending | Select-Object -First 1
     }
     
-    # Si aÃºn no hay sesiÃ³n, intentar con Get-VBRSession (para Backup Copy)
+    # Si aún no hay sesión, intentar con Get-VBRSession (para Backup Copy)
     if ($null -eq $session -and $job.JobType -in @("SimpleBackupCopyPolicy", "BackupCopy")) {
         $session = Get-VBRSession -Job $job -WarningAction SilentlyContinue | 
                    Sort-Object CreationTime -Descending | 
                    Select-Object -First 1
     }
+
     # Determinar tipo de trabajo
     $tipo = switch ($job.JobType) {
         "Backup" { "Hyper-V" }
@@ -41,10 +42,12 @@ $resultados = foreach ($job in $allJobs) {
         "BackupCopy" { "Copy" }
         default { "Agent" }
     }
+
     $resultadoTexto = "Sin datos"
     if ($null -ne $session) {
         $resultadoTexto = [string]$session.Result
     }
+
     [PSCustomObject]@{
         Trabajo    = $job.Name
         Tipo       = $tipo
@@ -61,39 +64,10 @@ $resultados | Sort-Object Trabajo | Format-Table -AutoSize
 $incidencias = $resultados | Where-Object { 
     $_.LastResult -notin @("Success", "Working", "En curso") 
 }
+
 if ($incidencias) {
-    Write-Host "ATENCIÃ“N: Se han detectado Errores" -ForegroundColor Red
+    Write-Host "ATENCIÓN: Se han detectado Errores" -ForegroundColor Red
 }
-
-# --- GENERACIÃ“N DE ARCHIVOS JSON ---
-
-# 1. Guardar el veeam_status.json original
+# Uso de Set-Content que es más rápido que Out-File para JSON
 $resultados | ConvertTo-Json -Compress | Set-Content ".\ficheros_json\veeam_status.json" -Encoding UTF8
-
-# 2. Generar la nueva estructura tipo Diccionario/Objeto dinÃ¡mico para estado_veeam.json
-$estadoVeeam = [ordered]@{}
-
-foreach ($res in $resultados) {
-    # Mapear "Success" a "OK", de lo contrario dejamos el estado original (ej. Failed, Warning)
-    $estadoLimpio = if ($res.LastResult -eq "Success") { "OK" } else { $res.LastResult }
-    
-    # Formatear la fecha a "aaaa-MM-dd HH:mm:ss" si es de tipo DateTime vÃ¡lida
-    $fechaFormateada = "Sin datos"
-    if ($res.LastRun -is [DateTime]) {
-        $fechaFormateada = $res.LastRun.ToString("yyyy-MM-dd HH:mm:ss")
-    } elseif ($res.LastRun -ne "Sin datos") {
-        # Si ya viene como string pero se puede parsear
-        $fechaFormateada = (Get-Date $res.LastRun).ToString("yyyy-MM-dd HH:mm:ss")
-    }
-
-    # AÃ±adir al objeto usando el nombre del trabajo como clave Ãºnica
-    $estadoVeeam[$res.Trabajo] = @{
-        "fecha"  = $fechaFormateada
-        "estado" = $estadoLimpio
-    }
-}
-
-# Guardar el nuevo JSON estructurado en el mismo directorio (con sangrado legible/sin comprimir)
-$estadoVeeam | ConvertTo-Json -Depth 5 | Set-Content ".\ficheros_json\estado_veeam.json" -Encoding UTF8
-
 exit 0

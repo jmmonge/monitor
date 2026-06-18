@@ -1,0 +1,18 @@
+{
+  "Backup PortalEmpleado": {
+    "fecha": "2026-06-18 02:01:28",
+    "estado": "OK"
+  },
+  "Backup DCyLinux": {
+    "fecha": "2026-06-18 01:02:51",
+    "estado": "OK"
+  },
+  "A Synology Ayto": {
+    "fecha": "2026-06-18 03:07:43",
+    "estado": "OK"
+  },
+  "Backup localhost": {
+    "fecha": "2026-06-18 02:42:52",
+    "estado": "OK"
+  }
+}
