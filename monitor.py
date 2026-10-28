@@ -110,15 +110,44 @@ def formatear_fecha_veeam(fecha_str):
         return datetime.fromisoformat(str(fecha_str).replace('Z', '+00:00')).strftime("%d/%m/%Y %H:%M")
     except: return str(fecha_str)
 
-def run_ssh(host, port, user, command):
+import subprocess
+import sys
+
+def run_ssh(host, port, user, command, timeout=None):
+    timeout = timeout or TIMEOUT_GENERAL
     print(f"--> [SSH] {host}...")
-    #cmd = f'ssh -o ConnectTimeout=5 -p {port} {user}@{host} "{command}"'
-    cmd = f'ssh -o ConnectTimeout={TIMEOUT_GENERAL} -p {port} {user}@{host} "{command}"'
+
+    cmd = [
+        "ssh",
+        "-o", "BatchMode=yes",                      # nunca pide password/confirmaciones
+        "-o", f"ConnectTimeout={timeout}",          # timeout de conexión TCP
+        "-o", "ServerAliveInterval=3",              # detecta conexiones muertas
+        "-o", "ServerAliveCountMax=2",
+        "-o", "StrictHostKeyChecking=accept-new",   # no se bloquea con hosts nuevos
+        "-p", str(port),
+        f"{user}@{host}",
+        command,                                    # un solo argumento, sin problemas de comillas
+    ]
+
     try:
-        #r = subprocess.run(cmd, shell=True, capture_output=True, text=True, timeout=10)
-        r = subprocess.run(cmd, shell=True, capture_output=True, text=True, timeout=TIMEOUT_GENERAL + 2)
-        return r.stdout.strip() if r.stdout else ""
-    except: return ""
+        r = subprocess.run(
+            cmd,
+            stdin=subprocess.DEVNULL,   # ssh nunca espera entrada
+            capture_output=True,
+            text=True,
+            timeout=timeout + 2,
+        )
+    except subprocess.TimeoutExpired:
+        print(f"    [!] Timeout en {host}", file=sys.stderr)
+        return ""
+    except Exception as e:
+        print(f"    [!] Error en {host}: {e}", file=sys.stderr)
+        return ""
+
+    if r.returncode != 0:
+        print(f"    [!] {host} devolvió {r.returncode}: {r.stderr.strip()}", file=sys.stderr)
+
+    return r.stdout.strip()
 
 def check_ping(ip):
     param = "-n" if os.name == "nt" else "-c"
@@ -143,7 +172,7 @@ if os.path.exists(VEEAM_JSON_FILE):
     try:
         os.remove(VEEAM_JSON_FILE)
     except: pass
-    
+'''   
 # ================= EJECUCIÓN PREVIA DE VEEAM =================
 print("--> 🌀 Ejecutando script de Veeam (PowerShell)...")
 try:
@@ -154,9 +183,63 @@ try:
     print("    [OK] Script de Veeam finalizado.")
 except subprocess.TimeoutExpired:
     print("    [!] El script de PowerShell tardó demasiado.")
+'''
+
+def lanzar_veeam():
+    print("--> 🌀 Lanzando script de Veeam (PowerShell) en segundo plano...")
+    ps_path = os.path.join(os.path.dirname(__file__), "veeam.ps1")
+    return subprocess.Popen(
+        ["pwsh.exe", "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", ps_path],
+        stdin=subprocess.DEVNULL,
+        stdout=subprocess.DEVNULL,   # o un fichero de log, ver abajo
+        stderr=subprocess.DEVNULL,
+    )
+
+def esperar_veeam(proc, timeout=60):
+    try:
+        proc.wait(timeout=timeout)
+        print(f"    [OK] Script de Veeam finalizado (código {proc.returncode}).")
+    except subprocess.TimeoutExpired:
+        proc.kill()
+        proc.wait()
+        print("    [!] El script de PowerShell tardó demasiado y fue cancelado.")
+
+def leer_veeam(now):
+    html = ""
+    if not os.path.exists(VEEAM_JSON_FILE):
+        return "<tr><td colspan='4'>Sin datos de Veeam (el script no generó el JSON)</td></tr>"
+    try:
+        with open(VEEAM_JSON_FILE, "r", encoding="utf-8-sig") as f:
+            v_data = json.load(f)
+        if isinstance(v_data, dict):
+            v_data = [v_data]
+        for j in v_data:
+            res = j.get("LastResult", "N/A")
+            last_run_str = j.get("LastRun")
+            f_v = formatear_fecha_veeam(last_run_str)
+
+            try:
+                f_dt = datetime.strptime(last_run_str, "%Y-%m-%d %H:%M:%S")
+                dias = (now - f_dt).days
+                c_fecha = "badge-green" if dias == 0 else "badge-orange" if dias <= 2 else "badge-red"
+            except Exception:
+                c_fecha = "badge-orange"
+
+            cls_res = "badge-green" if res == "Success" else "badge-red"
+            fecha_col = f'<span class="badge {c_fecha}">{f_v}</span>'
+            html += (f"<tr><td>{j.get('Trabajo')}</td><td>{j.get('Tipo')}</td>"
+                     f"<td><span class='badge {cls_res}'>{res}</span></td><td>{fecha_col}</td></tr>")
+    except Exception as e:
+        html = f"<tr><td colspan='4'>Error: {e}</td></tr>"
+    return html
+
+
+# --- Uso ---
+proc_veeam = lanzar_veeam()
+
 
 # A partir de aquí continúa el resto de tu script...
-print(f"\n🚀 INICIANDO RECOLECCIÓN - {datetime.now().strftime('%H:%M:%S')}")
+#print(f"\n🚀 INICIANDO RECOLECCIÓN - {datetime.now().strftime('%H:%M:%S')}")
 
 
 # ================= RECOLECCIÓN =================
@@ -319,6 +402,7 @@ if os.path.exists(VEEAM_JSON_FILE):
 # 3. Pings e Indicadores
 html_srv = ""
 for n, ip in servidores:
+    print(f"--> Comprobando ping a {n} ({ip})...")
     up = check_ping(ip)
     col = "#10b981" if up else "#ef4444"
     html_srv += f'<div class="card"><div class="status-indicator" style="background:{col}"></div><div class="card-body"><strong>{n}</strong><br><small>{ip}</small><br><span style="color:{col}; font-weight:bold; font-size:13px;">{"ONLINE" if up else "OFFLINE"}</span></div></div>'
@@ -331,11 +415,11 @@ html_srv += f'<div class="card"><div class="status-indicator" style="background:
 
 
 # 4. Logs SSH
-nuxit_logs = run_ssh(NUXIT_IP, NUXIT_PORT, NUXIT_USER, "tail -n 6 /home/www/gmu10/mis_scripts/logs/log_drupal.txt").replace("\n", "<br>")
+nuxit_logs = run_ssh(NUXIT_IP, NUXIT_PORT, NUXIT_USER, "tail -n 11 /home/www/gmu11/mis_scripts/logs/log_drupal.txt").replace("\n", "<br>")
 nuxit_ip = run_ssh(NUXIT_IP, NUXIT_PORT, NUXIT_USER, "tail -n 6 /home/www/transparencia/web/.htaccess").replace("\n", "<br>")
 
 def get_u(ip):
-    r = run_ssh(ip, "22", "jmmonge", "who -b && echo '---' && apt list --upgradable 2>/dev/null | grep /")
+    r = run_ssh(ip, "22", "jmmonge", "who -b && echo '---' && apt list --upgradable 2>/dev/null | grep / || true")
     if not r: return '<span class="badge">Error</span>', "No disponible"
     p = r.split('---')
     u = [l for l in p[1].split('\n') if "/" in l] if len(p)>1 else []
@@ -345,12 +429,9 @@ def get_u(ip):
 b208, t208 = get_u("192.168.20.208")
 b210, t210 = get_u("192.168.20.210")
 
-# MONITOR DE DESCARGAS EN NUXIT
-monitor_activo = check_monitor_descargas()
-color_monitor = "#10b981" if monitor_activo else "#ef4444"
-estado_monitor = "ON" if monitor_activo else "OFF"
-
-
+print("⏳ Esperando informe Veeam ...")
+esperar_veeam(proc_veeam, timeout=60)
+html_veeam = leer_veeam(now)
 
 # ================= CONSTRUCCIÓN HTML =================
 
@@ -571,7 +652,7 @@ html_final = f"""
         <h3>📡 NUXIT</h3>
         <div class="flex-row">
             <div class="flex-col"><h4>Logs lecturas archivos compartidos</h4><div class="console">{nuxit_logs}</div></div>
-            <div class="flex-col"><h4>Bloqueos IP transparencia</h4><div class="console" style="color:#93c5fd">{nuxit_ip}</div></div>
+            <!-- <div class="flex-col"><h4>Bloqueos IP transparencia</h4><div class="console" style="color:#93c5fd">{nuxit_ip}</div></div> -->
             <div>
                 <table class="grid-servers servers_internos">
                     <tr>

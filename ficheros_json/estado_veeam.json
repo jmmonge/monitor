@@ -1,18 +1,22 @@
 {
   "Backup PortalEmpleado": {
-    "fecha": "2026-06-18 02:01:28",
-    "estado": "OK"
+    "estado": "OK",
+    "fecha": "2026-10-28 02:01:34"
   },
-  "Backup DCyLinux": {
-    "fecha": "2026-06-18 01:02:51",
-    "estado": "OK"
+  "Backup DC": {
+    "estado": "OK",
+    "fecha": "2026-10-28 01:31:55"
+  },
+  "Backup Linux": {
+    "estado": "OK",
+    "fecha": "2026-10-28 01:01:31"
   },
   "A Synology Ayto": {
-    "fecha": "2026-06-18 03:07:43",
-    "estado": "OK"
+    "estado": "OK",
+    "fecha": "2026-10-28 03:04:43"
   },
   "Backup localhost": {
-    "fecha": "2026-06-18 02:42:52",
-    "estado": "OK"
+    "estado": "OK",
+    "fecha": "2026-10-28 02:44:54"
   }
 }
